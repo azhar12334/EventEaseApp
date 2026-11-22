@@ -1,0 +1,34 @@
+@page "/"
+@inject EventService EventService
+@inject UserSessionService Session
+@implements IDisposable
+
+<PageTitle>EventEase · Events</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Upcoming Events</h1>
+    @if (Session.IsLoggedIn)
+    {
+        <span class="badge bg-success fs-6">Signed in as @Session.UserName</span>
+    }
+</div>
+
+<div class="row">
+    @foreach (var ev in EventService.GetEvents())
+    {
+        <div class="col-md-6 col-lg-4">
+            <EventCard Event="ev">
+                <div class="d-flex gap-2 mt-2">
+                    <a class="btn btn-sm btn-outline-primary" href="@($"event/{ev.Id}")">Details</a>
+                    <a class="btn btn-sm btn-primary" href="@($"register/{ev.Id}")">Register</a>
+                </div>
+            </EventCard>
+        </div>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized() => Session.OnChange += StateHasChanged;
+
+    public void Dispose() => Session.OnChange -= StateHasChanged;
+}

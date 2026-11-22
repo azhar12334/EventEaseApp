@@ -1,0 +1,82 @@
+@page "/register/{Id:int}"
+@inject EventService EventService
+@inject RegistrationService RegistrationService
+@inject UserSessionService Session
+@inject NavigationManager Navigation
+
+<PageTitle>EventEase · Register</PageTitle>
+
+@if (_event is null)
+{
+    <div class="alert alert-warning">
+        <h4>Event not found</h4>
+        <p>Cannot register — no event with id <strong>@Id</strong>.</p>
+        <a class="btn btn-secondary" href="">Back to events</a>
+    </div>
+}
+else
+{
+    <h1>Register for @_event.Name</h1>
+    <p class="text-muted">@_event.Date.ToString("D") · @_event.Location</p>
+
+    @if (_submitted)
+    {
+        <div class="alert alert-success">
+            <h4>You're registered! 🎉</h4>
+            <p>Thanks, @_registration.AttendeeName. A confirmation was sent to @_registration.Email.</p>
+            <a class="btn btn-primary" href="attendance">Go to Attendance Tracker</a>
+            <a class="btn btn-outline-secondary" href="">Back to events</a>
+        </div>
+    }
+    else
+    {
+        @* Registration Form with validation (EditForm + DataAnnotationsValidator). *@
+        <EditForm Model="_registration" OnValidSubmit="HandleValidSubmit" class="col-md-6">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label class="form-label">Full name</label>
+                <InputText class="form-control" @bind-Value="_registration.AttendeeName" />
+                <ValidationMessage For="() => _registration.AttendeeName" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <InputText class="form-control" @bind-Value="_registration.Email" />
+                <ValidationMessage For="() => _registration.Email" />
+            </div>
+
+            <button class="btn btn-primary" type="submit">Submit registration</button>
+            <a class="btn btn-link" href="">Cancel</a>
+        </EditForm>
+    }
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Event? _event;
+    private Registration _registration = new();
+    private bool _submitted;
+
+    protected override void OnParametersSet()
+    {
+        _event = EventService.GetEvent(Id);
+        _registration = new Registration { EventId = Id };
+    }
+
+    private void HandleValidSubmit()
+    {
+        RegistrationService.Register(_registration);
+
+        // Start a user session on first successful registration (state management).
+        if (!Session.IsLoggedIn)
+        {
+            Session.SignIn(_registration.AttendeeName);
+        }
+
+        _submitted = true;
+    }
+}

@@ -1,0 +1,46 @@
+@page "/event/{Id:int}"
+@inject EventService EventService
+@inject RegistrationService RegistrationService
+@inject NavigationManager Navigation
+
+<PageTitle>EventEase · Event Details</PageTitle>
+
+@if (_event is null)
+{
+    @* Routing-error handling: a valid route but a non-existent id. *@
+    <div class="alert alert-warning">
+        <h4>Event not found</h4>
+        <p>We couldn't find an event with id <strong>@Id</strong>.</p>
+        <a class="btn btn-secondary" href="">Back to events</a>
+    </div>
+}
+else
+{
+    <a class="btn btn-link ps-0 mb-3" href="">&larr; All events</a>
+
+    <EventCard Event="_event" />
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Registrations</h5>
+            <p class="mb-1">Registered attendees: <strong>@_registeredCount</strong></p>
+            <p>Confirmed present: <strong>@RegistrationService.AttendedCount(_event.Id)</strong></p>
+            <a class="btn btn-primary" href="@($"register/{_event.Id}")">Register for this event</a>
+            <a class="btn btn-outline-secondary" href="attendance">Attendance Tracker</a>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Event? _event;
+    private int _registeredCount;
+
+    protected override void OnParametersSet()
+    {
+        _event = EventService.GetEvent(Id);
+        _registeredCount = _event is null ? 0 : RegistrationService.GetForEvent(_event.Id).Count();
+    }
+}

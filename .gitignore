@@ -1,0 +1,15 @@
+## .NET / Blazor build output
+bin/
+obj/
+.vs/
+*.user
+
+## Rider / VS Code
+.idea/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+
+## Publish output
+publish/
+*.swp

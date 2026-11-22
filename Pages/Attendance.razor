@@ -1,0 +1,61 @@
+@page "/attendance"
+@inject EventService EventService
+@inject RegistrationService RegistrationService
+@implements IDisposable
+
+<PageTitle>EventEase · Attendance Tracker</PageTitle>
+
+<h1>Attendance Tracker</h1>
+<p class="text-muted">Check attendees in as they arrive.</p>
+
+@foreach (var ev in EventService.GetEvents())
+{
+    var registrations = RegistrationService.GetForEvent(ev.Id).ToList();
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between">
+            <strong>@ev.Name</strong>
+            <span>@RegistrationService.AttendedCount(ev.Id) / @registrations.Count present</span>
+        </div>
+        <div class="card-body">
+            @if (registrations.Count == 0)
+            {
+                <p class="text-muted mb-0">No registrations yet.</p>
+            }
+            else
+            {
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Registered</th>
+                            <th class="text-center">Present</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reg in registrations)
+                        {
+                            <tr class="@(reg.HasAttended ? "table-success" : "")">
+                                <td>@reg.AttendeeName</td>
+                                <td>@reg.Email</td>
+                                <td>@reg.RegisteredAt.ToShortTimeString()</td>
+                                <td class="text-center">
+                                    <input type="checkbox" class="form-check-input"
+                                           checked="@reg.HasAttended"
+                                           @onchange="() => RegistrationService.ToggleAttendance(reg)" />
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized() => RegistrationService.OnChange += StateHasChanged;
+
+    public void Dispose() => RegistrationService.OnChange -= StateHasChanged;
+}

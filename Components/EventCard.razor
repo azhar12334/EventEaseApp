@@ -1,0 +1,63 @@
+@* Foundational Event Card component.
+   Displays an event and — in edit mode — supports TWO-WAY DATA BINDING
+   via the bindable `Event` parameter (usable as @bind-Event on a parent). *@
+
+<div class="card shadow-sm mb-3 h-100">
+    <div class="card-body">
+        @if (Editable)
+        {
+            <div class="mb-2">
+                <label class="form-label fw-bold">Name</label>
+                @* @bind writes straight back to the model = two-way binding *@
+                <input class="form-control" @bind="Event.Name" @bind:event="oninput" />
+            </div>
+            <div class="mb-2">
+                <label class="form-label fw-bold">Date</label>
+                <input type="date" class="form-control" @bind="Event.Date" />
+            </div>
+            <div class="mb-2">
+                <label class="form-label fw-bold">Location</label>
+                <input class="form-control" @bind="Event.Location" @bind:event="oninput" />
+            </div>
+            <div class="mb-2">
+                <label class="form-label fw-bold">Description</label>
+                <textarea class="form-control" rows="2" @bind="Event.Description"></textarea>
+            </div>
+            <p class="text-muted mb-0"><em>Live preview:</em> @Event.Name on @Event.Date.ToShortDateString()</p>
+        }
+        else
+        {
+            <h5 class="card-title">@Event.Name</h5>
+            <h6 class="card-subtitle mb-2 text-muted">
+                <span class="bi bi-calendar-event"></span> @Event.Date.ToString("D")
+            </h6>
+            <p class="card-text mb-1"><strong>Location:</strong> @Event.Location</p>
+            @if (!string.IsNullOrWhiteSpace(Event.Description))
+            {
+                <p class="card-text">@Event.Description</p>
+            }
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>The event to display or edit. Bindable via @bind-Event.</summary>
+    [Parameter, EditorRequired]
+    public Event Event { get; set; } = new();
+
+    /// <summary>Paired with Event to enable two-way binding (@bind-Event).</summary>
+    [Parameter]
+    public EventCallback<Event> EventChanged { get; set; }
+
+    /// <summary>When true, the card renders editable inputs.</summary>
+    [Parameter]
+    public bool Editable { get; set; }
+
+    /// <summary>Optional extra content (e.g. action buttons) in display mode.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}
